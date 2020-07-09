@@ -41,6 +41,9 @@ nc::Transform transform{ { 400, 300}, 4, 0 };
 //float scale = 4.0f;
 //float angle = 0.0f;
 
+float t{ 0 };
+
+
 
 float frametime;
 float roundTime{ 0 };
@@ -58,6 +61,8 @@ bool Update(float dt) // delta time (60fps) | 1/60 (0.016) | 0.016 * 60 (1)
 	// Time
 	DWORD time = GetTickCount(); // Ticks = Computer runtime
 
+	t += dt * 5;
+
 	deltaTime = time - prevTime; // current frame time - previous frame time
 
 	prevTime = time;
@@ -74,7 +79,7 @@ bool Update(float dt) // delta time (60fps) | 1/60 (0.016) | 0.016 * 60 (1)
 
 	if (gameOver)
 	{
-		dt = 0.0f;  // Stops all movement.
+		dt *= 0.25f;  // Stops all movement.
 	}
 
 
@@ -83,7 +88,7 @@ bool Update(float dt) // delta time (60fps) | 1/60 (0.016) | 0.016 * 60 (1)
 
 		
 
-	nc::Vector2 force;
+	nc::Vector2 force{ 0, 0 };
 	if (Core::Input::IsPressed('W')) { force = nc::Vector2{0, -1} *speed; }
 	nc::Vector2 direction = force * dt;
 	direction = nc::Vector2::Rotate(direction, player.GetTransform().angle);
@@ -91,10 +96,16 @@ bool Update(float dt) // delta time (60fps) | 1/60 (0.016) | 0.016 * 60 (1)
 
 
 	// rotate
-	if (Core::Input::IsPressed('A')) { player.GetTransform().angle -= (dt * 3.0f); };
-	if (Core::Input::IsPressed('D')) { player.GetTransform().angle += (dt * 3.0f); };
+
+	if (Core::Input::IsPressed('A')) { player.GetTransform().angle -= (dt * nc::DegreesToRadians(360.0f)); };
+	if (Core::Input::IsPressed('D')) { player.GetTransform().angle += (dt * nc::DegreesToRadians(360.0f)); };
 	
-	
+	player.GetTransform().position = nc::Clamp(player.GetTransform().position, { 0,0 }, { 800, 600 });
+
+	/*player.GetTransform().position.x = nc::Clamp(player.GetTransform().position.x, 0.0f, 800.0f);
+	player.GetTransform().position.y = nc::Clamp(player.GetTransform().position.y, 0.0f, 600.0f);*/
+
+
 	return quit;
 }
 
@@ -108,6 +119,16 @@ void Draw(Core::Graphics& graphics)
 
 	// Time
 	graphics.DrawString(10, 30, std::to_string( deltaTime / 1000.0f ).c_str()); // Run time
+
+
+	float v = (std::sin(t) + 1.0f) * 0.5f; // -1 <-> 1 | 0 - 2
+
+
+	// Color grade scale
+	nc::Color c = nc::Lerp(nc::Color{ 0, 0, 1 }, nc::Color{ 1, 0, 0 }, v);
+	nc::Vector2 p = nc::Lerp(nc::Vector2{ 400, 300 }, nc::Vector2{ 400, 100 }, v);
+	graphics.SetColor(c);
+	graphics.DrawString(p.x, p.y, "The Last Starfighter");
 
 	if (gameOver)
 	{
@@ -139,6 +160,7 @@ int main()
 	//	points.push_back(nc::Vector2{ nc::random(0.0f,800.0f),nc::random(0.0f,600.0f) });
 	//	//points.push_back({ nc::random(0.0f,800.0f),nc::random(0.0f,600.0f) });
 	//}
+	
 
 	DWORD ticks = GetTickCount(); // how many ticks in a second
 	std::cout << ticks /1000 / 60/60<< std::endl;
@@ -153,7 +175,7 @@ int main()
 	enemy.Load("enemy.txt");
 
 	char name[] = "CSC196";
-	Core::Init(name, 800, 600);
+	Core::Init(name, 800.0f, 600.0f);
 	Core::RegisterUpdateFn(Update);
 	Core::RegisterDrawFn(Draw);
 
