@@ -3,11 +3,11 @@
 #include <cmath>
 namespace nc
 {
-	float random() // 0.0 to 1.0
+	inline float random() // 0.0 to 1.0
 	{
 		return rand() / static_cast<float>(RAND_MAX);
 	}
-	float random(float min, float max) // min - max
+	inline float random(float min, float max) // min - max
 	{
 		if (min > max)
 		{
